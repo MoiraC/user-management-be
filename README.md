@@ -21,3 +21,12 @@ Sqlite.
 ## About Project
 
 This is the back-end for the User Management Project. We store datas in here and do the delete, edit, save operations.
+
+## API Endpoints
+
+``` bash
+GET
+POST
+PUT
+DELETE
+```
