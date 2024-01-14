@@ -12,11 +12,11 @@ import (
 var DB *sql.DB
 
 type User struct {
-	Id       int    `json:"id"`
-	Name     string `json:"name"`
-	Surname  string `json:"surname"`
-	Email    string `json:"email"`
-	Birthday string `json:"birthday"`
+	Id      int    `json:"id"`
+	Name    string `json:"name"`
+	Surname string `json:"surname"`
+	Email   string `json:"email"`
+	Gender  string `json:"gender"`
 }
 
 func ConnectDatabase() error {
@@ -43,7 +43,7 @@ func GetUsers() ([]User, error) {
 
 	for rows.Next() {
 		singleUser := User{}
-		err = rows.Scan(&singleUser.Id, &singleUser.Name, &singleUser.Surname, &singleUser.Email, &singleUser.Birthday)
+		err = rows.Scan(&singleUser.Id, &singleUser.Name, &singleUser.Surname, &singleUser.Email, &singleUser.Gender)
 
 		if err != nil {
 			return nil, err
@@ -63,7 +63,7 @@ func GetUsers() ([]User, error) {
 
 func AddUser(newUser User) (bool, error) {
 
-	_, err := DB.Exec("INSERT INTO users (name, surname, email, birthday) values(?,?,?,?)", newUser.Name, newUser.Surname, newUser.Email, newUser.Birthday)
+	_, err := DB.Exec("INSERT INTO users (name, surname, email, gender) values(?,?,?,?)", newUser.Name, newUser.Surname, newUser.Email, newUser.Gender)
 	log.Println("Inserted the user into database!")
 
 	if err != nil {
@@ -84,4 +84,32 @@ func RemoveUser(id string) (bool, error) {
 	log.Println("Deleted the user from database!")
 
 	return true, nil
+}
+
+func UpdateUser(id string, changedUser User) (bool, error) {
+
+	_, err := DB.Exec("UPDATE users SET name=?, surname=?, email=?, gender=? WHERE id=?;", changedUser.Name, changedUser.Surname, changedUser.Email, changedUser.Gender, id)
+
+	if err != nil {
+		return false, err
+	}
+
+	log.Println("Updated the user at database!")
+
+	return true, nil
+}
+
+func GetUser(id string) (User, error) {
+
+	var user User
+	row := DB.QueryRow("SELECT * FROM users WHERE id=?;", id)
+	err := row.Scan(&user.Id, &user.Name, &user.Surname, &user.Email, &user.Gender)
+
+	if err != nil {
+		return user, err
+	}
+
+	log.Println("Found the user at database!")
+
+	return user, nil
 }

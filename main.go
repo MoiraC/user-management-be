@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
@@ -19,7 +20,8 @@ func main() {
 	{
 		router.POST("/create", postUser)
 		router.GET("/", readUser)
-		router.POST("/update/:id", updateUser)
+		router.GET("/:id", getUser)
+		router.PUT("/update/:id", updateUser)
 		router.DELETE("/delete/:id", deleteUser)
 	}
 
@@ -46,8 +48,24 @@ func readUser(c *gin.Context) {
 }
 
 func updateUser(c *gin.Context) {
-	c.JSON(200, gin.H{"message": "Record Updated!"})
+	id := c.Param("id")
+
+	var json models.User
+
+	if err := c.ShouldBindJSON(&json); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	success, err := models.UpdateUser(id, json)
+
+	if success {
+		c.JSON(http.StatusOK, gin.H{"message": "Record Updated!"})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+	}
 }
+
 func deleteUser(c *gin.Context) {
 	id := c.Param("id")
 
@@ -61,7 +79,6 @@ func deleteUser(c *gin.Context) {
 }
 
 func postUser(c *gin.Context) {
-
 	var json models.User
 
 	if err := c.ShouldBindJSON(&json); err != nil {
@@ -73,6 +90,20 @@ func postUser(c *gin.Context) {
 
 	if success {
 		c.JSON(http.StatusOK, gin.H{"message": "Success"})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+	}
+}
+
+func getUser(c *gin.Context) {
+	id := c.Param("id")
+
+	user, err := models.GetUser(id)
+
+	if err == nil {
+		c.JSON(http.StatusOK, gin.H{"data": user})
+	} else if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No user with specified id"})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 	}
