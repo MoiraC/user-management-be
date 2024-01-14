@@ -60,7 +60,7 @@ func updateUser(c *gin.Context) {
 	success, err := models.UpdateUser(id, json)
 
 	if success {
-		c.JSON(http.StatusOK, gin.H{"message": "Record Updated!"})
+		c.JSON(http.StatusNoContent, gin.H{"message": "Record Updated!"})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 	}
@@ -72,7 +72,9 @@ func deleteUser(c *gin.Context) {
 	success, err := models.RemoveUser(id)
 
 	if success {
-		c.JSON(http.StatusOK, gin.H{"message": "Record Deleted!"})
+		c.JSON(http.StatusNoContent, gin.H{"message": "Record Deleted!"})
+	} else if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No user with specified id"})
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 	}
